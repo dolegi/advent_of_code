@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 )
 
-func main() {
-	input := `3093	749	3469	142	2049	3537	1596	3035	2424	3982	3290	125	249	131	118	3138
+const (
+	input = `3093	749	3469	142	2049	3537	1596	3035	2424	3982	3290	125	249	131	118	3138
 141	677	2705	2404	2887	2860	1123	2714	117	1157	2607	1800	153	130	1794	3272
 182	93	2180	114	103	1017	95	580	2179	2470	2487	2806	1574	1325	1898	1706
 3753	233	3961	3747	3479	3597	1303	2612	4043	1815	3318	737	197	3943	239	254
@@ -23,29 +24,35 @@ func main() {
 238	373	228	395	86	59	289	87	437	384	233	79	470	403	441	352
 151	3473	1435	87	1517	1480	140	2353	1293	118	163	3321	2537	3061	1532	3402
 127	375	330	257	220	295	145	335	304	165	151	141	289	256	195	272`
+)
 
+func main() {
 	checksum := 0
 	for _, row := range strings.Split(input, "\n") {
 		checksum += Checksum(row)
-
 	}
 	fmt.Println(checksum)
 }
 
-func Checksum(row string) int {
-	numbers := strings.Fields(row)
-	highest, _ := strconv.Atoi(numbers[0])
-	lowest := highest
+func StrToIntArray(arr []string) []int {
+	numbers := make([]int, len(arr))
+	for i, n := range arr {
+		numbers[i], _ = strconv.Atoi(n)
+	}
+	return numbers
+}
 
-	for _, n := range numbers {
-		num, _ := strconv.Atoi(n)
-		if num > highest {
-			highest = num
-		}
-		if num < lowest {
-			lowest = num
+func Checksum(row string) (checksum int) {
+	strNumbers := strings.Fields(row)
+	numbers := StrToIntArray(strNumbers)
+	sort.Ints(numbers)
+
+	for i, n1 := range numbers[:(len(numbers) / 2)] {
+		for _, n2 := range numbers[(i + 1):] {
+			if n2%n1 == 0 {
+				checksum += n2 / n1
+			}
 		}
 	}
-
-	return highest - lowest
+	return
 }
