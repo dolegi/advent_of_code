@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"sort"
 )
 
 const (
@@ -522,7 +523,12 @@ rvbu czwpdit vmlihg spz lfaxxev zslfuto oog dvoksub`
 
 func isWordValid(word string, validWords []string) bool {
 	for _, validWord := range validWords {
-		if word == validWord {
+		compareWord := strings.Split(word, "")
+		compareValidWord := strings.Split(validWord, "")
+		sort.Strings(compareWord)
+		sort.Strings(compareValidWord)
+
+		if equalSlices(compareWord, compareValidWord) {
 			return false
 		}
 	}
@@ -538,6 +544,20 @@ func isInputValid(words string) bool {
 		}
 		validWords = append(validWords, word)
 	}
+	return true
+}
+
+func equalSlices(a []string, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
 	return true
 }
 
