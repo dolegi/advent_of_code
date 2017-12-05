@@ -1076,19 +1076,22 @@ func StrToIntArray(arr string) (resultArr []int) {
 }
 
 func calculateEscapeSteps(offsets []int) int {
-	currentPosition := 0
-	escapePosition := len(offsets)
-	for i := 0; i < Limit; i += 1 {
-		if currentPosition >= escapePosition {
-			return i
+	steps := 0
+	for currentPosition := 0; currentPosition < len(offsets); steps++ {
+		if steps >= Limit {
+			return -1
 		}
 		offset := offsets[currentPosition]
-		offsets[currentPosition] += 1
+		if offset >= 3 {
+			offsets[currentPosition] -= 1
+		} else {
+			offsets[currentPosition] += 1
+		}
 		if offset != 0 {
 			currentPosition += offset
 		}
 	}
-	return -1
+	return steps
 }
 
 func main() {
