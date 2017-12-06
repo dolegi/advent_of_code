@@ -52,7 +52,7 @@ func findHighest(arr []int) (index int) {
 	return
 }
 
-func calculateConfigs(currentConfig []int) int {
+func calculateCyclesInLoop(currentConfig []int) int {
 	prevConfigs := [][]int{}
 
 	for i := 0; !sliceInMatrix(currentConfig, prevConfigs); i++ {
@@ -72,10 +72,18 @@ func calculateConfigs(currentConfig []int) int {
 		}
 	}
 
-	return len(prevConfigs)
+	startOfLoop := 0
+	for i := 0; i < len(prevConfigs); i++ {
+		if equalSlices(currentConfig, prevConfigs[i]) {
+			startOfLoop = i
+			continue
+		}
+	}
+
+	return len(prevConfigs) - startOfLoop
 }
 
 func main() {
 	inputArr := StrToIntArray(input)
-	fmt.Println(calculateConfigs(inputArr))
+	fmt.Println(calculateCyclesInLoop(inputArr))
 }
