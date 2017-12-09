@@ -1056,6 +1056,7 @@ func findHighestRegister() int {
 func main() {
 	registers = initialiseRegisters(input)
 
+	highestValueEver := 0
 	for _, line := range strings.Split(input, "\n") {
 		words := strings.Fields(line)
 		if shouldRunCondition(words[4], words[5], words[6]) {
@@ -1066,8 +1067,12 @@ func main() {
 			} else {
 				registers[words[0]] -= value
 			}
+			if registers[words[0]] > highestValueEver {
+				highestValueEver = registers[words[0]]
+			}
 		}
 	}
 
 	fmt.Println(findHighestRegister())
+	fmt.Println(highestValueEver)
 }
