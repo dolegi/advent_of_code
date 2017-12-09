@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -1430,6 +1431,13 @@ kqtye (46)
 nbpkmt (60) -> thzvetu, qjcsn`
 )
 
+type Node struct {
+	name        string
+	weight      int
+	children    []string
+	totalWeight int
+}
+
 func contains(arr []string, value string) bool {
 	for _, s := range arr {
 		if s == value {
@@ -1439,29 +1447,94 @@ func contains(arr []string, value string) bool {
 	return false
 }
 
-func findParent(rawTree string) string {
+func getNodesAndChildNodes(rawTree string) ([]Node, []string) {
 	rows := strings.Split(rawTree, "\n")
-	nodes := make([]string, len(rows))
-	childNodes := []string{}
+	nodes := make([]Node, len(rows))
+	childNodeNames := []string{}
 	for i, row := range rows {
-		nodes[i] = strings.Split(row, " ")[0]
-		children := strings.Split(row, "->")
+		rowData := strings.Split(row, " ")
+		name := rowData[0]
+		weight, _ := strconv.Atoi(rowData[1][:len(rowData[1])-1][1:])
+		children := []string{}
 
-		if len(children) >= 2 {
-			newChildNodes := strings.Split(strings.TrimSpace(children[1]), ", ")
-			childNodes = append(childNodes, newChildNodes...)
+		if len(rowData) > 2 {
+			childrenStr := strings.TrimSpace(strings.Split(row, "->")[1])
+			children = strings.Split(childrenStr, ", ")
+			childNodeNames = append(childNodeNames, children...)
 		}
+		nodes[i] = Node{name, weight, children, weight}
 	}
 
+	return nodes, childNodeNames
+}
+
+func findParent(nodes []Node, childNodes []string) Node {
 	for _, node := range nodes {
-		if !contains(childNodes, node) {
+		if !contains(childNodes, node.name) {
 			return node
 		}
 	}
+	return Node{}
+}
 
-	return ""
+func findNode(nodes []Node, name string) Node {
+	for _, node := range nodes {
+		if node.name == name {
+			return node
+		}
+	}
+	return Node{}
+}
+
+func findInvalidNode(node Node, nodes []Node) int {
+	totalWeight := node.weight
+	if len(node.children) > 0 {
+		for _, childName := range node.children {
+			childNode := findNode(nodes, childName)
+			totalWeight += findInvalidNode(childNode, nodes)
+		}
+
+		invalidNodes := []Node{}
+		for _, childName := range node.children {
+			childNode := findNode(nodes, childName)
+			expectedWeight := (node.weight + (len(node.children) * childNode.totalWeight))
+			if totalWeight != expectedWeight {
+				//fmt.Printf("invalid %s %d %d %d || ", childNode.name, totalWeight, expectedWeight, childNode.totalWeight)
+				invalidNodes = append(invalidNodes, childNode)
+			}
+		}
+
+		expectedWeight := 0
+		invalidNode := Node{}
+		for i := 0; i < len(invalidNodes); i++ {
+			repeated := false
+			for j := 0; j < len(invalidNodes); j++ {
+				if invalidNodes[i].totalWeight == invalidNodes[j].totalWeight && i != j {
+					repeated = true
+					expectedWeight = (node.weight + (len(node.children) * invalidNodes[i].totalWeight))
+				}
+			}
+			if !repeated {
+				invalidNode = invalidNodes[i]
+			}
+		}
+		if len(invalidNodes) > 0 {
+			fmt.Printf("\nINVALID: %s WEIGHT SHOULD BE: %d\n", invalidNode.name, invalidNode.weight - (totalWeight - expectedWeight))
+		}
+	}
+
+	for i := range nodes {
+		if nodes[i].name == node.name {
+			nodes[i].totalWeight = totalWeight
+			continue
+		}
+	}
+
+	return totalWeight
 }
 
 func main() {
-	fmt.Println(findParent(input))
+	nodes, childNodes := getNodesAndChildNodes(input)
+	parentNode := findParent(nodes, childNodes)
+	findInvalidNode(parentNode, nodes)
 }
