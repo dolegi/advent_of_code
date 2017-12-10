@@ -9,33 +9,44 @@ const (
 )
 
 func main() {
-	insideGarbage := false
-	score := 0
-	level := 1
-	bangCount := 0
-
-	for i, c := range input {
-		switch {
-		case c == '<':
-			insideGarbage = true
-		case insideGarbage && c == '>' && (bangCount%2 == 1):
-			bangCount = 0
-		case insideGarbage && c == '>':
-			insideGarbage = false
-			bangCount = 0
-		case insideGarbage && c == '!' && (input[i+1] == '!' || input[i+1] == '>'):
-			bangCount++
-		case insideGarbage && c == '!':
-			bangCount = 0
-		case insideGarbage:
-			continue
-		case c == '{':
-			score += level
-			level++
-		case c == '}':
-			level--
-		}
+	inputs := []string{
+		"<>",
+		"<random characters>",
+		"<<<<>",
+		"<{!>}>",
+		"<!!>",
+		"<!!!>>",
+		`<{o"i!a,<{i<a>`,
+		`<{o"i!!a,<{i<a>`,
+		input,
 	}
-	fmt.Println(score)
+
+	for _, inp := range inputs {
+		insideGarbage := false
+		bangCount := 0
+		garbageCount := 0
+		for _, c := range inp {
+			switch {
+			case insideGarbage && c == '!':
+				bangCount++
+			case insideGarbage && c != '!' && (bangCount%2 == 1):
+				bangCount = 0
+			case insideGarbage && c == '<':
+				bangCount = 0
+				garbageCount++
+			case c == '<':
+				bangCount = 0
+				insideGarbage = true
+			case insideGarbage && c == '>':
+				bangCount = 0
+				insideGarbage = false
+			case insideGarbage:
+				bangCount = 0
+				garbageCount++
+				continue
+			}
+		}
+		fmt.Println(garbageCount)
+	}
 
 }
