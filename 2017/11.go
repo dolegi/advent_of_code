@@ -51,9 +51,8 @@ func main() {
 
 	for _, input := range inputs {
 		directions := strings.Split(input, ",")
-		fmt.Println(len(directions))
 		max := 0
-		for i := 0; i < len(directions); i++ {
+		for i := range directions {
 			noOfDirections := minimizeDirections(directions[:i])
 			if max < noOfDirections {
 				max = noOfDirections
