@@ -2017,6 +2017,8 @@ const (
 109 <-> 53, 63`
 )
 
+var everVisited []int
+
 type row struct {
 	parent int
 	children []int
@@ -2060,5 +2062,14 @@ func main() {
 		}
 		rows[i] = row{parent, children}
 	}
-	fmt.Println(len(checkVisited(0, rows, []int{})))
+	countGroups := 0
+	for i := range lines {
+		if contains(everVisited, i) {
+			continue
+		}
+		visited := checkVisited(i, rows, []int{})
+		everVisited = append(everVisited, visited...)
+		countGroups++
+	}
+	fmt.Println(countGroups)
 }
