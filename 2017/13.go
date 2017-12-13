@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -57,38 +57,22 @@ const (
 )
 
 type length struct {
-	size int
+	size            int
 	scannerPosition int
-	increase bool
+	increase        bool
 }
 
-func main() {
-	lines := strings.Split(input, "\n")
-	end, _ := strconv.Atoi(strings.Split(lines[len(lines)-1], ":")[0])
-	lengths := make(map[int]length)
-
-	for _, line :=  range lines {
-		lineArr := strings.Split(line, ":")
-		id, _ := strconv.Atoi(lineArr[0])
-		size, _ := strconv.Atoi(lineArr[1][1:])
-		lengths[id] = length{size, 0, true}
-	}
-
-	severity := 0
-	for i := 0; i <= end; i++ {
-		if lengths[i].size != 0 && 0 == lengths[i].scannerPosition {
-			severity += (i * lengths[i].size)
-			fmt.Printf("HIT %d %d\n", i, lengths[i].size)
-		}
-//		fmt.Printf("%d %d | ", i, lengths[i].scannerPosition)
-		for j := 0; j <= end; j++ {
+func moveScanners(delay int, limit int, lengths map[int]length) int {
+	i := 0
+	for i = 0; i < delay; i++ {
+		for j := 0; j <= limit+1; j++ {
 			currentLength := lengths[j]
 			if currentLength.size == 0 {
 				continue
 			}
 
 			increase := currentLength.increase
-			if currentLength.scannerPosition > currentLength.size - 2 {
+			if currentLength.scannerPosition > currentLength.size-2 {
 				increase = false
 			}
 			if currentLength.scannerPosition == 0 {
@@ -101,9 +85,43 @@ func main() {
 				scannerPosition -= 1
 			}
 			lengths[j] = length{currentLength.size, scannerPosition, increase}
-//			fmt.Printf("%d %v   ", j, currentLength)
 		}
-//		fmt.Println()
 	}
-	fmt.Println(severity)
+	return i
+}
+
+func main() {
+	lines := strings.Split(input, "\n")
+	end, _ := strconv.Atoi(strings.Split(lines[len(lines)-1], ":")[0])
+	limit := end + 1
+	delay := 0
+	originalLengths := map[int]length{}
+	for _, line := range lines {
+		lineArr := strings.Split(line, ":")
+		id, _ := strconv.Atoi(lineArr[0])
+		size, _ := strconv.Atoi(lineArr[1][1:])
+		originalLengths[id] = length{size, 0, true}
+	}
+
+	for {
+		lengths := map[int]length{}
+		for key, value := range originalLengths {
+			lengths[key] = value
+		}
+
+		i := 0
+		for i = 0; i < limit; i++ {
+			if lengths[i].size != 0 && 0 == lengths[i].scannerPosition {
+				break
+			}
+			moveScanners(1, limit, lengths)
+		}
+		if i == limit {
+			fmt.Println(delay)
+			break
+		}
+
+		delay += 1
+		moveScanners(1, limit, originalLengths)
+	}
 }
