@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 func buildList(size int) (list []int) {
@@ -47,7 +46,7 @@ func calculateDenseHash(sparseHash []int) []int {
 	denseHash := make([]int, 0, 16)
 	for i := 1; i <= len(sparseHash); i++ {
 		xor ^= sparseHash[i-1]
-		if i % 16 == 0 {
+		if i%16 == 0 {
 			denseHash = append(denseHash, xor)
 			xor = 0
 		}
@@ -75,38 +74,61 @@ func appendNumber(input string, index int) string {
 	return input + "-" + num
 }
 
-func hexToBinary(input string) string {
+func hexToBinary(input string) []bool {
 	if len(input) > 8 {
-		return hexToBinary(input[:8]) + hexToBinary(input[8:])
+		return append(hexToBinary(input[:8]), hexToBinary(input[8:])...)
 	}
 	n, err := strconv.ParseUint(input, 16, 32)
 	if err != nil {
 		fmt.Println(err)
 	}
+	binStr := fmt.Sprintf("%032b", n)
 
-	return fmt.Sprintf("%b", n)
+	bin := make([]bool, len(binStr))
+	for i, b := range binStr {
+		if b == '1' {
+			bin[i] = true
+		} else {
+			bin[i] = false
+		}
+	}
+
+	return bin
 }
 
-func countSquares(input string) int {
+func countRegions(rows [][]bool) int {
 	count := 0
-	for _, c := range strings.Split(input, "") {
-		if c == "1" {
-			count++
+	for i, row := range rows {
+		for j, v := range row {
+			if v {
+				clearRegion(i, j, rows)
+				count++
+			}
 		}
 	}
 	return count
 }
 
+func clearRegion(i, j int, rows [][]bool) {
+	if i == -1 || i == len(rows) || j == -1 || j == len(rows[i]) || !rows[i][j] {
+		return
+	}
+	rows[i][j] = false
+	clearRegion(i-1, j, rows)
+	clearRegion(i+1, j, rows)
+	clearRegion(i, j+1, rows)
+	clearRegion(i, j-1, rows)
+}
+
 func main() {
 	input := "ljoxqyyw"
 
-	count := 0
+	rows := [][]bool{}
 	for i := 0; i < 128; i++ {
 		numberedInput := appendNumber(input, i)
 		knotHash := knotHash(numberedInput)
 		bin := hexToBinary(knotHash)
-		count += countSquares(bin)
+		rows = append(rows, bin)
 	}
-
-	fmt.Println(count)
+	fmt.Println(countRegions(rows))
 }
