@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -35,22 +35,64 @@ func partner(input, x, y string) string {
 	return exchange(input, findIndex(input, x), findIndex(input, y))
 }
 
-func main() {
-	input := "abcdefghijklmnop"
-	for _, move := range strings.Split(moves, ",") {
-		switch move[0] {
+type move struct {
+	x       int
+	y       int
+	a       string
+	b       string
+	perform byte
+}
+
+func getMoves() []move {
+	realMoves := []move{}
+	for _, m := range strings.Split(moves, ",") {
+		switch m[0] {
 		case 's':
-			x, _ := strconv.Atoi(move[1:])
-			input = spin(input, x)
+			x, _ := strconv.Atoi(m[1:])
+			realMoves = append(realMoves, move{x, 0, "", "", 's'})
 		case 'x':
-			values := strings.Split(move[1:], "/")
+			values := strings.Split(m[1:], "/")
 			x, _ := strconv.Atoi(values[0])
 			y, _ := strconv.Atoi(values[1])
-			input = exchange(input, x, y)
+			realMoves = append(realMoves, move{x, y, "", "", 'x'})
 		case 'p':
-			values := strings.Split(move[1:], "/")
-			input = partner(input, values[0], values[1])
+			values := strings.Split(m[1:], "/")
+			realMoves = append(realMoves, move{0, 0, values[0], values[1], 'p'})
 		}
 	}
+	return realMoves
+}
+
+func transform(input string, realMoves []move) string {
+	for _, m := range realMoves {
+		switch m.perform {
+		case 's':
+			input = spin(input, m.x)
+		case 'x':
+			input = exchange(input, m.x, m.y)
+		case 'p':
+			input = partner(input, m.a, m.b)
+		}
+	}
+	return input
+}
+
+func main() {
+	input := "abcdefghijklmnop"
+	origialInput := "abcdefghijklmnop"
+	realMoves := getMoves()
+	oneBillion := 1000000000
+	firstCycle := 0
+	for i := 0; i < oneBillion; i++ {
+		input = transform(input, realMoves)
+		if input == origialInput {
+			firstCycle = i + 1
+			break
+		}
+	}
+	for i := 0; i < oneBillion%firstCycle; i++ {
+		input = transform(input, realMoves)
+	}
+
 	fmt.Println(input)
 }
