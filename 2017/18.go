@@ -50,42 +50,59 @@ jgz f -16
 jgz a -19`
 )
 
-var registers map[string]int
-var sounds map[string]int
+type program struct {
+	registers map[string]int
+	queue []int
+	terminated bool
+	location int
+	locked bool
+	sendCount int
+}
 
-func getValue(a string) int {
+func getValue(a string, p program) int {
 	if a == "" {
 		return 0
 	} else if num, err := strconv.Atoi(a); err == nil {
 		return num
 	}
-	return registers[a]
+	return p.registers[a]
 }
 
-func runCmd(cmd, a string, b, limit int) int {
+func runCmd(cmd, a string, b, limit int, one, two *program) {
 	switch cmd {
 	case "set":
-		registers[a] = b
+		one.registers[a] = b
 	case "add":
-		registers[a] += b
+		one.registers[a] += b
 	case "mul":
-		registers[a] *= b
+		one.registers[a] *= b
 	case "mod":
-		registers[a] %= b
+		one.registers[a] %= b
 	case "snd":
-		sounds[a] = registers[a]
-	case "rcv":
-		if registers[a] != 0 {
-			registers[a] = sounds[a]
-			fmt.Println(sounds)
-			return limit
+		one.sendCount += 1
+		if num, err := strconv.Atoi(a); err == nil {
+			two.queue = append(two.queue, num)
+		} else {
+			two.queue = append(two.queue, one.registers[a])
 		}
+	case "rcv":
+		if len(one.queue) == 0 {
+			one.locked = true
+			return
+		}
+		one.locked = false
+		one.registers[a] = one.queue[0]
+		one.queue = one.queue[1:]
 	case "jgz":
-		if registers[a] != 0 {
-			return b
+		if num, err := strconv.Atoi(a); err == nil && num > 0 {
+			one.location += b
+			return
+		} else if one.registers[a] > 0 {
+			one.location += b
+			return
 		}
 	}
-	return 1
+	one.location += 1
 }
 
 func destructureLine(line string) (cmd, a, b string) {
@@ -97,12 +114,25 @@ func destructureLine(line string) (cmd, a, b string) {
 }
 
 func main() {
-	registers = make(map[string]int)
-	sounds = make(map[string]int)
+	p1 := program{map[string]int{"p":0}, []int{}, false, 0, false, 0}
+	p2 := program{map[string]int{"p":1}, []int{}, false, 0, false, 0}
+
 	lines := strings.Split(input, "\n")
-	offset := 0
-	for i := 0; i < len(lines); i += offset {
-		cmd, a, b := destructureLine(lines[i])
-		offset = runCmd(cmd, a, getValue(b), len(lines))
+	for !((p1.terminated && p2.terminated) || (p1.locked && p2.locked)) {
+		if p1.location >= len(lines) -1 || p1.location < 0 {
+			p1.terminated = true
+		} else {
+			cmd, a, b := destructureLine(lines[p1.location])
+			runCmd(cmd, a, getValue(b, p1), len(lines), &p1, &p2)
+		}
+
+		if p2.location >= len(lines)-1 || p2.location < 0{
+			p2.terminated = true
+		} else {
+			cmd, a, b := destructureLine(lines[p2.location])
+			runCmd(cmd, a, getValue(b, p2), len(lines), &p2, &p1)
+		}
 	}
+	fmt.Println(p1.sendCount)
+	fmt.Println(p2.sendCount)
 }
