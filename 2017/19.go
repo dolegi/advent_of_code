@@ -215,7 +215,7 @@ type coord struct {
 	y int
 }
 
-func main() {
+func buildGrid(in string) [][]rune {
 	grid := [][]rune{}
 
 	for i, line := range strings.Split(input, "\n") {
@@ -225,15 +225,25 @@ func main() {
 		}
 	}
 
-	pos := coord{}
+	return grid
+}
+
+func findStartPosition(grid [][]rune) (pos coord) {
 	for x, r := range grid[0] {
 		if r != ' ' {
 			pos = coord{x, 0}
 		}
 	}
+	return pos
+}
+
+func main() {
+	grid := buildGrid(input)
+	pos := findStartPosition(grid)
 
 	direction := coord{0, 1}
 	points := []rune{}
+	steps := 1
 
 	for {
 		if pos.y + direction.y >= len(grid) || pos.x + direction.x >= len(grid[pos.y + direction.y]) {
@@ -242,6 +252,11 @@ func main() {
 
 		next := grid[pos.y + direction.y][pos.x + direction.x]
 		if next == ' ' {
+			break
+		}
+
+		steps += 1
+		if next == 'M' {
 			break
 		}
 
@@ -278,4 +293,5 @@ func main() {
 	fmt.Println(string(points))
 	fmt.Println(pos)
 	fmt.Println(grid[1][5])
+	fmt.Println(steps)
 }
