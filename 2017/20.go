@@ -5,6 +5,7 @@ import (
 	"strings"
 	"strconv"
 	"math"
+	"sort"
 )
 
 const (
@@ -1010,6 +1011,11 @@ p=<518,2025,1367>, v=<70,289,197>, a=<1,-16,-11>
 p=<-887,-2131,-2169>, v=<-123,-304,-305>, a=<10,20,26>
 p=<992,1365,-2469>, v=<150,192,-352>, a=<-12,-12,30>
 p=<-2241,1405,-737>, v=<-318,200,-100>, a=<23,-14,7>`
+
+	input2 = `p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>
+p=<-4,0,0>, v=< 2,0,0>, a=< 0,0,0>
+p=<-2,0,0>, v=< 1,0,0>, a=< 0,0,0>
+p=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>`
 )
 
 type coord struct {
@@ -1034,7 +1040,7 @@ func getCoord(str string) coord {
 }
 
 func getParticles(in string) (particles []particle) {
-	for _, p := range strings.Split(input, "\n") {
+	for _, p := range strings.Split(in, "\n") {
 		fields := strings.Split(p, ">,")
 		fields[2] = strings.Replace(fields[2], ">", "", -1)
 		part := particle{}
@@ -1081,10 +1087,48 @@ func getClosestIndex(particles []particle) int {
 	return closestIndex
 }
 
+func checkCollision(particles []particle, part particle, pid int) (collisionIds []int) {
+	for i, p := range particles {
+		if pid == i {
+			continue
+		}
+		if p.p.x == part.p.x && p.p.y == part.p.y && p.p.z == part.p.z {
+			collisionIds = append(collisionIds, i)
+		}
+	}
+	return collisionIds
+}
+
+func getNonColliding(particles []particle) []particle {
+	for i := 0; i < len(particles); i++ {
+		collisionIds := checkCollision(particles, particles[i], i)
+		if len(collisionIds) == 0 {
+			continue
+		}
+		collisionIds = append(collisionIds, i)
+		sort.Ints(collisionIds)
+		offset := 0
+		for _, collisionId := range collisionIds {
+			index := collisionId - offset
+			particles = append(particles[:index], particles[index+1:]...)
+			offset++
+		}
+		i = 0
+	}
+
+	return particles
+}
+
 func main() {
 	particles := getParticles(input)
-	closestIndex := getClosestIndex(particles)
 
-	fmt.Println(closestIndex)
-
+	for i := 0; i < 1000; i++ {
+		particles = getNonColliding(particles)
+		for j, p := range particles {
+			particles[j].v = coord{p.v.x + p.a.x, p.v.y + p.a.y, p.v.z + p.a.z}
+			p = particles[j]
+			particles[j].p = coord{p.p.x + p.v.x, p.p.y + p.v.y, p.p.z + p.v.z}
+		}
+	}
+	fmt.Println(len(particles))
 }
