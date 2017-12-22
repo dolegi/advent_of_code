@@ -4,11 +4,121 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"math"
 )
 
 const (
 	rules = `../.# => ##./#../...
 .#./..#/### => #..#/..../..../#..#`
+
+	rules2 = `../.. => ##./###/...
+#./.. => ..#/##./##.
+##/.. => #.#/##./...
+.#/#. => ##./###/###
+##/#. => ###/.#./#.#
+##/## => .#./.#./###
+.../.../... => #.../.#.#/..##/#...
+#../.../... => .##./#.##/##../##..
+.#./.../... => ##../#.../.#.#/###.
+##./.../... => .#.#/###./.#.#/.#..
+#.#/.../... => .#.#/##../.#../###.
+###/.../... => #.##/.##./..##/#.##
+.#./#../... => #..#/...#/.###/.##.
+##./#../... => .###/..#./#.../####
+..#/#../... => ..../.#../#.##/....
+#.#/#../... => ..##/.##./.##./....
+.##/#../... => ###./#.../#.#./.#.#
+###/#../... => .#../##.#/.#.#/..#.
+.../.#./... => ####/##../..#./#..#
+#../.#./... => ####/#.##/#..#/..#.
+.#./.#./... => #.##/.#../.#../.#.#
+##./.#./... => ..##/###./..../...#
+#.#/.#./... => ...#/.#.#/.#../....
+###/.#./... => ..../..#./#..#/##.#
+.#./##./... => ##../.#.#/#.#./.#.#
+##./##./... => ###./##.#/#.#./.##.
+..#/##./... => ..#./.#.#/###./##.#
+#.#/##./... => ##.#/.#../#.../#.#.
+.##/##./... => ####/..../...#/#.##
+###/##./... => ####/.###/.###/.###
+.../#.#/... => .#.#/###./.##./.#..
+#../#.#/... => #.##/#..#/#..#/##..
+.#./#.#/... => ...#/##../..../#..#
+##./#.#/... => #..#/.#../##.#/..##
+#.#/#.#/... => ..../...#/..#./#..#
+###/#.#/... => .##./#..#/...#/.##.
+.../###/... => ..../#.##/.#../##..
+#../###/... => .#.#/.###/###./#..#
+.#./###/... => ...#/.#../###./.###
+##./###/... => #..#/###./#.##/.#..
+#.#/###/... => .#../##../###./.#.#
+###/###/... => ###./.#.#/.##./###.
+..#/.../#.. => ...#/#..#/###./.###
+#.#/.../#.. => #.#./#.##/#.#./...#
+.##/.../#.. => .#.#/#.#./..../#.##
+###/.../#.. => ##.#/..##/.#.#/##..
+.##/#../#.. => ####/#..#/.#.#/...#
+###/#../#.. => .#.#/####/..##/.#.#
+..#/.#./#.. => ##.#/.#../#.../.##.
+#.#/.#./#.. => #..#/.#.#/#.#./#..#
+.##/.#./#.. => #..#/..#./#.../...#
+###/.#./#.. => #.##/.#../#.##/##.#
+.##/##./#.. => .###/..../#..#/.##.
+###/##./#.. => #.../.#.#/..#./.#..
+#../..#/#.. => ..../##../#.../##.#
+.#./..#/#.. => ..##/...#/###./##..
+##./..#/#.. => .#.#/.###/...#/.#.#
+#.#/..#/#.. => .#../..../.###/.##.
+.##/..#/#.. => #.##/.##./.##./####
+###/..#/#.. => #.../.#../..../#...
+#../#.#/#.. => .#../.#.#/..##/###.
+.#./#.#/#.. => ##.#/#.##/...#/#.##
+##./#.#/#.. => .##./####/.#.#/.#..
+..#/#.#/#.. => #.##/##.#/..#./.###
+#.#/#.#/#.. => ###./.#../###./###.
+.##/#.#/#.. => .#../.#../####/##.#
+###/#.#/#.. => #.##/##.#/#.../##..
+#../.##/#.. => ..#./.###/#.#./..#.
+.#./.##/#.. => ##.#/##../..#./#...
+##./.##/#.. => #.../..#./#.../.#..
+#.#/.##/#.. => ..#./#.##/.##./####
+.##/.##/#.. => #.#./.#../####/..##
+###/.##/#.. => ...#/#..#/#.../.#..
+#../###/#.. => ..../..../##.#/.##.
+.#./###/#.. => ..##/..#./##../....
+##./###/#.. => .#../..##/..../.#.#
+..#/###/#.. => ...#/...#/..#./###.
+#.#/###/#.. => ####/##.#/##../..##
+.##/###/#.. => ..##/##../#..#/##..
+###/###/#.. => ##.#/.##./...#/.#.#
+.#./#.#/.#. => ###./####/.##./#..#
+##./#.#/.#. => #.../..#./.##./##..
+#.#/#.#/.#. => .##./####/##../.#.#
+###/#.#/.#. => ##../..../.#.#/....
+.#./###/.#. => ..##/##.#/.##./.#.#
+##./###/.#. => #.../.#../..##/..#.
+#.#/###/.#. => ####/.##./#..#/...#
+###/###/.#. => ####/..../##.#/.#.#
+#.#/..#/##. => ####/####/####/#...
+###/..#/##. => #.#./####/##.#/####
+.##/#.#/##. => .###/#.../#.../...#
+###/#.#/##. => ..#./#.#./##../##.#
+#.#/.##/##. => ###./###./#..#/.###
+###/.##/##. => ##.#/..#./##../....
+.##/###/##. => ##.#/###./.#.#/.##.
+###/###/##. => #.##/.#.#/#..#/.##.
+#.#/.../#.# => ..#./####/...#/#.##
+###/.../#.# => .##./..#./####/#...
+###/#../#.# => .##./##../..../###.
+#.#/.#./#.# => #.##/#.##/#.##/#...
+###/.#./#.# => ####/#.##/####/.###
+###/##./#.# => .#.#/..../.#.#/#.##
+#.#/#.#/#.# => ###./#.##/####/.###
+###/#.#/#.# => .##./.##./.#.#/....
+#.#/###/#.# => ##../..##/...#/.##.
+###/###/#.# => .#../#.##/..##/.#..
+###/#.#/### => ##.#/..#./...#/.###
+###/###/### => ..##/###./.###/.###`
 )
 
 type rule struct {
@@ -140,6 +250,14 @@ func compareWithRule(pattern [][]byte, r rule) ([][]byte, bool) {
 		if compareByteMatrices(pattern, r.before) {
 			return r.after, true
 		}
+		flipLeftRight(pattern)
+		if compareByteMatrices(pattern, r.before) {
+			return r.after, true
+		}
+		flipTopBottom(pattern)
+		if compareByteMatrices(pattern, r.before) {
+			return r.after, true
+		}
 		rotate90(pattern)
 	}
 
@@ -163,8 +281,14 @@ func transformPattern(pattern [][]byte, programRules []rule) [][]byte {
 	return pattern
 }
 
-func splitPattern(pattern [][]byte, width int) [][][]byte {
+func splitPattern(pattern [][]byte) [][][]byte {
 	patternArr := [][][]byte{}
+	width := 0
+	if len(pattern) % 2 == 0 {
+		width = 2
+	} else {
+		width = 3
+	}
 
 	coords := generateSplitCoords(len(pattern), width)
 	for _, c := range coords {
@@ -197,24 +321,96 @@ func generateSplitCoords(num int, max int) []coord {
 	return coords
 }
 
+func sumBytes(b [][][]byte) int {
+	count := 0
+	for i := range b {
+		for j := range b[i] {
+			for _ = range b[i][j] {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+func stitchPatterns(patterns [][][]byte) ([][]byte, bool) {
+	p := [][]byte{}
+	width := int(math.Sqrt(float64(sumBytes(patterns))))
+	coords := generateSplitCoords(width, len(patterns[0]))
+
+	if (width*width) != sumBytes(patterns) {
+		return p, false
+	}
+
+	if len(patterns) == 1 {
+		return patterns[0], true
+	}
+
+	for i := 0; i < width; i++ {
+		p = append(p, []byte{})
+		for j := 0; j < width; j++ {
+			p[i] = append(p[i], 'f')
+		}
+	}
+
+	for k, pattern := range patterns {
+		offset := coords[k]
+		for i := range pattern {
+			for j := range pattern[i] {
+				p[i+offset.x][j+offset.y] = pattern[i][j]
+			}
+		}
+	}
+
+	return p, true
+}
+
+func generateNextPattern(pattern [][]byte, programRules []rule) ([][]byte, bool) {
+	patterns := splitPattern(pattern)
+	splitPatterns := [][][]byte{}
+	for _, p := range patterns {
+		p = transformPattern(p, programRules)
+		splitPatterns = append(splitPatterns, p)
+	}
+	return stitchPatterns(splitPatterns)
+}
+
+func getRules(input string) (programRules []rule) {
+	for _, r := range strings.Split(input, "\n") {
+		programRules = append(programRules, strToRule(r))
+	}
+	return programRules
+}
+
+func countOnBits(pattern [][]byte) int {
+	count := 0
+	for i := range pattern {
+		for j :=  range pattern[i] {
+			if pattern[i][j] == '#' {
+				count++
+			}
+		}
+	}
+	return count
+}
+
 func main() {
 	pattern := [][]byte{
 		[]byte{'.', '#', '.'},
 		[]byte{'.', '.', '#'},
 		[]byte{'#', '#', '#'},
 	}
-
-	programRules := []rule{}
-	for _, r := range strings.Split(rules, "\n") {
-		programRules = append(programRules, strToRule(r))
-	}
+	programRules := getRules(rules2)
 
 	printByteMatrix(pattern)
-	pattern = transformPattern(pattern, programRules)
-	printByteMatrix(pattern)
-
-	patterns := splitPattern(pattern, 2)
-	for _, p := range patterns {
-		printByteMatrix(p)
+	for i := 0; i < 18; i++ {
+		newPattern, valid := generateNextPattern(pattern, programRules)
+		if valid {
+			pattern = newPattern
+		}
+//		printByteMatrix(pattern)
+		fmt.Println(i)
 	}
+
+	fmt.Println(countOnBits(pattern))
 }
