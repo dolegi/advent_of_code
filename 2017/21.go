@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
-	"bytes"
 )
 
 const (
@@ -15,6 +15,11 @@ type rule struct {
 	before [][]byte
 	after  [][]byte
 	width  int
+}
+
+type coord struct {
+	x int
+	y int
 }
 
 func transform(pattern [][]byte) {
@@ -108,9 +113,9 @@ func strToRule(str string) rule {
 
 func printByteMatrix(b [][]byte) {
 	for i := range b {
-		fmt.Printf("%s", string(b[i]))
-		fmt.Println()
+		fmt.Printf("%s\n", string(b[i]))
 	}
+	fmt.Println()
 }
 
 func compareByteMatrices(a [][]byte, b [][]byte) bool {
@@ -141,6 +146,57 @@ func compareWithRule(pattern [][]byte, r rule) ([][]byte, bool) {
 	return pattern, false
 }
 
+func transformPattern(pattern [][]byte, programRules []rule) [][]byte {
+	for _, r := range programRules {
+		if len(pattern)%r.width != 0 {
+			continue
+		}
+		if len(pattern) > r.width {
+			newWidth := len(pattern) + (len(pattern) / r.width)
+			fmt.Println("WIDTH", newWidth)
+		}
+		newPattern, changed := compareWithRule(pattern, r)
+		if changed {
+			return newPattern
+		}
+	}
+	return pattern
+}
+
+func splitPattern(pattern [][]byte, width int) [][][]byte {
+	patternArr := [][][]byte{}
+
+	coords := generateSplitCoords(len(pattern), width)
+	for _, c := range coords {
+		nextPattern := [][]byte{}
+		for i := 0; i < width; i++ {
+			nextPattern = append(nextPattern, []byte{})
+			for j := 0; j < width; j++ {
+				nextPattern[i] = append(nextPattern[i], pattern[c.x + i][c.y + j])
+			}
+		}
+		patternArr = append(patternArr, nextPattern)
+	}
+
+	return patternArr
+}
+
+func generateSplitCoords(num int, max int) []coord {
+	coords := []coord{}
+	nums := []int{}
+	factor := num / max
+	for i := 1; i <= factor; i++ {
+		nums = append(nums, num - (max*i))
+	}
+
+	for _, i := range nums {
+		for _, j := range nums {
+			coords = append([]coord{coord{i,j}}, coords...)
+		}
+	}
+	return coords
+}
+
 func main() {
 	pattern := [][]byte{
 		[]byte{'.', '#', '.'},
@@ -153,14 +209,12 @@ func main() {
 		programRules = append(programRules, strToRule(r))
 	}
 
-	for _, r := range programRules {
-		if r.width == len(pattern) {
-			newPattern, changed := compareWithRule(pattern, r)
-			if changed {
-				fmt.Println()
-				pattern = newPattern
-			}
-		}
-		printByteMatrix(pattern)
+	printByteMatrix(pattern)
+	pattern = transformPattern(pattern, programRules)
+	printByteMatrix(pattern)
+
+	patterns := splitPattern(pattern, 2)
+	for _, p := range patterns {
+		printByteMatrix(p)
 	}
 }
