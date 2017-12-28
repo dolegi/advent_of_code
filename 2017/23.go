@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 )
 
 const (
@@ -45,72 +46,63 @@ sub b -17
 jnz 1 -23`
 )
 
+var count int
+
+func SieveOfEratosthenes(lower int, value int) {
+    f := make([]bool, value)
+    for i := 2; i <= int(math.Sqrt(float64(value))); i++ {
+        if !f[i] {
+            for j := i * i; j < value; j += i {
+                f[j] = true
+            }
+        }
+    }
+    for i := lower; i < value; i += 17 {
+        if f[i] {
+		count++
+	}
+    }
+    fmt.Println(count)
+}
+
 func main() {
-	a := 0
-	b := 0
-	c := 0
-	d := 0
-	e := 0
-	f := 0
-	g := 0
-	h := 0
-	multiCount := 0
+ 	b := (79*100) + 100000
+ 	c := b + 17000
+// 	d := 2
+// 	e := 2
+// 	f := 1
+// 	h := 0
 
-	b = 79
-	c = b
+	SieveOfEratosthenes(b, c + 1)
+// Loop:
+// 	if (d * e) == b {
+// 		f = 0
+// 	}
 
-	if a != 0 {
-		b *= 100
-		multiCount += 1
-		b -= 100000
-		c = b
-		c -= 17000
-	}
+// 	e += 1
 
-Jmp23:
-	f = 1
-	d = 2
-Jmp13:
-	e = 2
-Jmp8:
-	g = d
-	g *= e
-	multiCount += 1
-	g -= b
+// 	if e != b {
+// 		goto Loop
+// 	}
 
-	if g == 0 {
-		f = 0
-	}
+// 	d += 1
 
-	e -= -1
-	g = e
-	g -= b
+// 	if d != b {
+// 		e = 2
+// 		goto Loop
+// 	}
 
-	if g != 0 {
-		goto Jmp8
-	}
+// 	if f == 0 {
+// 		h += 1
+// 	}
 
-	d -= -1
-	g = d
-	g -= b
+// 	if b != c {
+// 		b += 17
+// 		f = 1
+// 		d = 2
+// 		e = 2
+// 		goto Loop
+// 	}
 
-
-	if g != 0 {
-		goto Jmp13
-	}
-
-
-	if f == 2 {
-		h -= -1
-	}
-
-	g = b
-	g -= c
-
-	if g != 0 {
-		b -= -17
-		goto Jmp23
-	}
-
-	fmt.Println(multiCount)
+// 	fmt.Println(h)
 }
