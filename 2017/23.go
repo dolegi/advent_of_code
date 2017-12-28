@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
-	"strconv"
 )
 
 const (
@@ -15,24 +13,30 @@ mul b 100
 sub b -100000
 set c b
 sub c -17000
-set f 1
+set f 1 //
 set d 2
 set e 2
 set g d
 mul g e
 sub g b
+
 jnz g 2
 set f 0
+
 sub e -1
 set g e
 sub g b
 jnz g -8
+
 sub d -1
 set g d
 sub g b
+
 jnz g -13
+
 jnz f 2
 sub h -1
+
 set g b
 sub g c
 jnz g 2
@@ -41,54 +45,72 @@ sub b -17
 jnz 1 -23`
 )
 
-var registers map[string]int
-var multiCount int
-
-func getValue(a string) int {
-	if a == "" {
-		return 0
-	} else if num, err := strconv.Atoi(a); err == nil {
-		return num
-	}
-	return registers[a]
-}
-
-func runCmd(cmd, a string, b int) int {
-	switch cmd {
-	case "set":
-		registers[a] = b
-	case "sub":
-		registers[a] -= b
-	case "mul":
-		registers[a] *= b
-		multiCount = multiCount + 1
-	case "jnz":
-		if num, err := strconv.Atoi(a); err == nil && num != 0 {
-			return b
-		} else if registers[a] != 0 {
-			return b
-		}
-	}
-	return 1
-}
-
-func destructureLine(line string) (cmd, a, b string) {
-	data := strings.Split(line, " ")
-	if len(data) == 2 {
-		return data[0], data[1], ""
-	}
-	return data[0], data[1], data[2]
-}
-
 func main() {
-	registers = make(map[string]int)
-	lines := strings.Split(input, "\n")
-	offset := 0
-	multiCount = 0
-	for i := 0; i < len(lines); i += offset {
-		cmd, a, b := destructureLine(lines[i])
-		offset = runCmd(cmd, a, getValue(b))
-//		fmt.Println(i, cmd, a, getValue(b), registers)
+	a := 0
+	b := 0
+	c := 0
+	d := 0
+	e := 0
+	f := 0
+	g := 0
+	h := 0
+	multiCount := 0
+
+	b = 79
+	c = b
+
+	if a != 0 {
+		b *= 100
+		multiCount += 1
+		b -= 100000
+		c = b
+		c -= 17000
 	}
+
+Jmp23:
+	f = 1
+	d = 2
+Jmp13:
+	e = 2
+Jmp8:
+	g = d
+	g *= e
+	multiCount += 1
+	g -= b
+
+	if g == 0 {
+		f = 0
+	}
+
+	e -= -1
+	g = e
+	g -= b
+
+	if g != 0 {
+		goto Jmp8
+	}
+
+	d -= -1
+	g = d
+	g -= b
+
+
+	if g != 0 {
+		goto Jmp13
+	}
+
+
+	if f == 2 {
+		h -= -1
+	}
+
+	g = b
+	g -= c
+
+	if g != 0 {
+		b -= -17
+		goto Jmp23
+	}
+
 	fmt.Println(multiCount)
 }
