@@ -57,8 +57,8 @@ input = `192, 220
 201, 277`
 
 const matrix = []
-let biggestY = 0
-let biggestX = 0
+let biggestY = 800
+let biggestX = 800
 const coords = []
 
 input.split('\n').forEach((coord, idx) => {
@@ -143,12 +143,14 @@ matrix.forEach(row => {
 })
 
 matrix.forEach((row, y) => {
-  matrix[y] = row.filter(cel => !invalid.includes(cel))
+  // matrix[y] = row.filter(cel => !invalid.includes(cel))
 })
 
-// matrix.forEach((row, y) => {
-// console.log(row)
-// })
+matrix.forEach((row, y) => {
+  row.forEach((cel, x) => {
+    matrix[y][x] = matrix[y][x].toLowerCase()
+  })
+})
 
 const count = {}
 matrix.forEach((row, y) => {
@@ -161,4 +163,29 @@ matrix.forEach((row, y) => {
 })
 
 console.log(Math.max(...Object.values(count)))
+
+matrix.forEach((row, y) => {
+  row.forEach((cel, x) => {
+    matrix[y][x] = 0
+    coords.forEach(([x2, y2], idx) => {
+      const dist = manDistance(x, x2, y, y2)
+      matrix[y][x] += dist
+    })
+  })
+})
+
+matrix.forEach((row, y) => {
+  matrix[y] = row.filter(cel => cel < 10000)
+})
+
+// matrix.forEach((row, y) => {
+//   console.log(row)
+// })
+
+let c = 0
+matrix.forEach((row, y) => {
+  c += row.length
+})
+
+console.log(c)
 
