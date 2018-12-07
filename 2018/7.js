@@ -129,23 +129,28 @@ Object.keys(unorderedGraph).sort().forEach(key => {
   graph[key] = unorderedGraph[key];
 })
 
-console.log(graph)
-
-
 //CABDFE
 //
 
-const visited = []
 let currentPoint = starts.filter(c => !ends.includes(c)).filter((value, idx, self) => self.indexOf(value) === idx).sort()[0]
-for (let i = 0; i < input.split('\n').length; i++) {
-  Object.entries(graph).some(([k, v]) => {
-    if (v.every(x => visited.includes(x))) {
+const elf1 = { busyFor: 0, currentPoint }
+const visited = []
+elf1.currentPoint = currentPoint
+visited.push(currentPoint)
+elf1.busyFor = currentPoint.charCodeAt(0) - 64
+delete graph[currentPoint]
+
+for (let i = 0; i < 100; i++) {
+  while (Object.entries(graph).some(([k, v]) => {
+    if (v.every(x => visited.includes(x)) && elf1 === 0) {
       currentPoint = k
       delete graph[k]
       return true
     }
-  })
-  visited.push(currentPoint)
+  })) {
+    visited.push(currentPoint)
+  }
 }
 
-console.log(visited.filter((value, idx, self) => self.indexOf(value) === idx).join(''))
+console.log(visited.join(''))
+
