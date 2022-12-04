@@ -1,13 +1,6 @@
-local inspect = require('inspect')
+local readFile = require('readFile')
 
-local function readAll(file)
-  local f = assert(io.open(file, "rb"))
-  local content = f:read("*all")
-  f:close()
-  return content
-end
-
-local input = readAll('./input.txt')
+local input = readFile('./input.txt')
 
 local calories = { 0 }
 local i = 1
@@ -26,4 +19,4 @@ end
 
 table.sort(calories)
 print('Part 1: ', calories[#calories])
-print('Part 2: ', calories[#calories] + calories[#calories-1] + calories[#calories-2])
+print('Part 2: ', calories[#calories] + calories[#calories - 1] + calories[#calories - 2])
